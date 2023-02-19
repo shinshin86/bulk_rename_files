@@ -13,6 +13,12 @@ cargo install --git https://github.com/shinshin86/bulk_rename_files.git
 bulk_rename_files <dir_path> <output_file_name (No extension is required.)>
 ```
 
+Run `--help` for more information.
+
+```sh
+bulk_rename_files --help
+```
+
 ## License
 
 [MIT](https://github.com/shinshin86/bulk_rename_files/blob/main/LICENSE)
