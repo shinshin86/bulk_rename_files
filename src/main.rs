@@ -1,6 +1,7 @@
 use clap::Parser;
 use std::fs;
 use std::path::PathBuf;
+use std::process;
 
 /// This is a CLI tool for bulk renaming of files at once.
 #[derive(Parser, Debug)]
@@ -19,28 +20,34 @@ fn main() {
     let args = Args::parse();
 
     let file_path = args.dir_path;
-    for (i, entry) in fs::read_dir(file_path)
-        .expect("Error: Failed to read directory")
-        .enumerate()
-    {
-        let entry = entry.unwrap();
-        let old_path = entry.path();
-        let extension = old_path.extension();
+    if let Ok(entries) = fs::read_dir(file_path) {
+        for (i, entry) in entries.enumerate() {
+            let entry = entry.unwrap();
+            let old_path = entry.path();
+            let extension = old_path.extension();
 
-        if let Some(ext) = extension {
-            let ext_str = ext.to_string_lossy();
+            if let Some(ext) = extension {
+                let ext_str = ext.to_string_lossy();
 
-            println!("Target file path: {:?}", old_path);
-            let new_file_name = format!("{}_{}.{}", args.output_file_name, i + 1, ext_str);
-            let new_path = old_path.parent().unwrap().join(new_file_name);
+                let new_file_name = format!("{}_{}.{}", args.output_file_name, i + 1, ext_str);
+                let new_path = old_path.parent().unwrap().join(new_file_name);
 
-            if !args.dry_run {
-                rename(old_path, new_path).expect("Error: Failed to rename file");
+                println!("Target file path: {:?} -> {:?}", old_path, new_path);
+
+                if !args.dry_run {
+                    rename(old_path, new_path).expect("Error: Failed to rename file");
+                }
+            } else {
+                println!(
+                    "Error: Failed to read extension. Skip file name: {:?}",
+                    old_path
+                );
+                continue;
             }
-        } else {
-            println!("Error: Failed to read extension");
-            continue;
         }
+    } else {
+        eprint!("Error: Failed to read directory");
+        process::exit(1);
     }
 
     println!("Finish!");
