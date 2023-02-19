@@ -19,6 +19,10 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
+    if args.dry_run {
+        println!("=== Dry run mode ===");
+    }
+
     let file_path = args.dir_path;
     if let Ok(entries) = fs::read_dir(file_path) {
         let mut index = 1;
