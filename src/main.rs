@@ -1,15 +1,24 @@
-use std::env;
+use clap::Parser;
 use std::fs;
 use std::path::PathBuf;
 
-fn main() {
-    let args: Vec<String> = env::args().collect();
-    if args.len() < 3 {
-        println!("usage: bulk_rename_files <dir_path> <output_file_name>");
-        return;
-    }
+/// This is a CLI tool for bulk renaming of files at once.
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// Target directory path
+    dir_path: String,
+    /// Output file name()
+    output_file_name: String,
+    /// Dry run mode
+    #[arg(long = "dry-run")]
+    dry_run: bool,
+}
 
-    let file_path = &args[1];
+fn main() {
+    let args = Args::parse();
+
+    let file_path = args.dir_path;
     for (i, entry) in fs::read_dir(file_path)
         .expect("Error: Failed to read directory")
         .enumerate()
@@ -22,9 +31,12 @@ fn main() {
             let ext_str = ext.to_string_lossy();
 
             println!("Target file path: {:?}", old_path);
-            let new_file_name = format!("{}_{}.{}", &args[2], i + 1, ext_str);
+            let new_file_name = format!("{}_{}.{}", args.output_file_name, i + 1, ext_str);
             let new_path = old_path.parent().unwrap().join(new_file_name);
-            rename(old_path, new_path).expect("Error: Failed to rename file");
+
+            if !args.dry_run {
+                rename(old_path, new_path).expect("Error: Failed to rename file");
+            }
         } else {
             println!("Error: Failed to read extension");
             continue;
