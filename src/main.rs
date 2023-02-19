@@ -21,7 +21,8 @@ fn main() {
 
     let file_path = args.dir_path;
     if let Ok(entries) = fs::read_dir(file_path) {
-        for (i, entry) in entries.enumerate() {
+        let mut index = 1;
+        for entry in entries {
             let entry = entry.unwrap();
             let old_path = entry.path();
             let extension = old_path.extension();
@@ -29,7 +30,7 @@ fn main() {
             if let Some(ext) = extension {
                 let ext_str = ext.to_string_lossy();
 
-                let new_file_name = format!("{}_{}.{}", args.output_file_name, i + 1, ext_str);
+                let new_file_name = format!("{}_{}.{}", args.output_file_name, index, ext_str);
                 let new_path = old_path.parent().unwrap().join(new_file_name);
 
                 println!("Target file path: {:?} -> {:?}", old_path, new_path);
@@ -37,6 +38,8 @@ fn main() {
                 if !args.dry_run {
                     rename(old_path, new_path).expect("Error: Failed to rename file");
                 }
+
+                index += 1;
             } else {
                 println!(
                     "Error: Failed to read extension. Skip file name: {:?}",
